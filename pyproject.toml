@@ -1,0 +1,16 @@
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "dev_utils"
+version = "0.1.0"
+description = "Common tools I use for development"
+readme = "README.md"
+license = { text = "MIT" }
+authors = [{ name = "Nedko Savov", email = "nedko.savov@insait.ai" }]
+dependencies = ["natsort"]
+requires-python = ">=3.8"
+
+[tool.setuptools.packages.find]
+where = ["dev_utils"]
