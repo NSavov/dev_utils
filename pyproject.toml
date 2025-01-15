@@ -13,4 +13,4 @@ dependencies = ["natsort"]
 requires-python = ">=3.8"
 
 [tool.setuptools.packages.find]
-where = ["dev_utils"]
+where = ["."]
