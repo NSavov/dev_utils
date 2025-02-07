@@ -11,7 +11,8 @@ def get_checkpoint_dpath(
     ckpt_central_dpath: Path|None = None,
     load_ckpt: tuple|None = None,
     is_main_process: bool|None = True,
-    wait_callback: Callable|None = None
+    wait_callback: Callable|None = None,
+    name_id_map: dict|None = None
 ) -> tuple:
     '''
     Returns the checkpoint directory path and the path to the checkpoint to load.
@@ -31,6 +32,7 @@ def get_checkpoint_dpath(
         A callback function that is called in order to synchronize multiple processes.
     '''
     load_checkpoint_fpath = None
+    run_id = None
     if ckpt_central_dpath is not None:
         os.makedirs(ckpt_central_dpath, exist_ok=True)
         cdm = CheckpointDirManager(ckpt_central_dpath)
@@ -39,51 +41,40 @@ def get_checkpoint_dpath(
             checkpoint_dpath = cdm.build_dpath_next(run_name)
             cdm.update()
             run_id = cdm.get_last_id()
-            
+    
     cdm = CheckpointDirManager(ckpt_dpath)
+    if run_id is None:
+        run_id = cdm.get_next_id()
+
+
+    if is_main_process:
+        if name_id_map is not None and run_name in name_id_map:
+            run_id = name_id_map[run_name]
+            checkpoint_dpath = cdm.build_dpath_by_id(run_id, description=run_name, exist_ok=True)
+        else:
+            checkpoint_dpath = cdm.build_dpath_by_id(run_id, description=run_name)
+
+    if wait_callback is not None:
+        wait_callback()
+
+    if not is_main_process:
+        cdm.update()
+        checkpoint_dpath = cdm.get_last_dpath()
 
     if load_ckpt is not None:
-        log.t("Continuing training", type(load_ckpt))
         assert hasattr(load_ckpt, '__iter__') and len(load_ckpt) == 2
-
-        if is_main_process:
-            if ckpt_central_dpath is not None:
-                checkpoint_dpath = cdm.build_dpath_by_id(run_id, description=run_name)
-            else:
-                checkpoint_dpath = cdm.build_dpath_next(run_name)
-
-        if wait_callback is not None:
-            wait_callback()
-
-        if not is_main_process:
-            cdm.update()
-            checkpoint_dpath = cdm.get_last_dpath()
 
         if load_ckpt[0] == "last":
             load_checkpoint_dpath = cdm.get_last_dpath()
         else:
             load_checkpoint_dpath = cdm.get_dpath_by_id(load_ckpt[0])
-        
+
         cm = CheckpointManager(load_checkpoint_dpath)
         if load_ckpt[1] == "last":
             load_checkpoint_fpath = cm.get_last_fpath()
         else:
             load_checkpoint_fpath = cm.get_fpath_by_id(load_ckpt[1])
-    else:
-        if is_main_process:
-            if ckpt_central_dpath is not None:
-                checkpoint_dpath = cdm.build_dpath_by_id(run_id, description=run_name)
-            else:
-                checkpoint_dpath = cdm.build_dpath_next(run_name)
-        
-        if wait_callback is not None:
-            wait_callback()
 
-        if not is_main_process:
-            cdm.update()
-            checkpoint_dpath = cdm.get_last_dpath()
-
-    
     if wait_callback is not None:
         wait_callback()
 
@@ -215,10 +206,13 @@ class CheckpointDirManager:
             raise Exception(f"No checkpoints found!")
         return max(self.checkpoints_dict.keys())
         
-    def build_dpath_by_id(self, id: int, description: str = "", base_id: int|None = None, base_iter: int|None = None) -> Path:
+    def build_dpath_by_id(self, id: int, description: str = "", base_id: int|None = None, base_iter: int|None = None, exist_ok=False) -> Path:
         # self.delete_empty_by_id(id)
         if id in self.checkpoints_dict:
-            raise Exception(f"Checkpoint with id {id} already exists!")
+            if not exist_ok:
+                raise Exception(f"Checkpoint with id {id} already exists!")
+            else:
+                return self.get_dpath_by_id(id)
         
         dname = f"{id:03}"
         if description:
