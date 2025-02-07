@@ -1,0 +1,4 @@
+DATASET_DPATH=$1
+DATASET_NAME=$(basename $DATASET_DPATH)
+
+/infra/scripts/dataset-create $DATASET_NAME $DATASET_DPATH

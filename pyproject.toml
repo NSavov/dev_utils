@@ -4,13 +4,20 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "dev_utils"
-version = "0.1.0"
+version = "0.2.0"
 description = "Common tools I use for development"
 readme = "README.md"
 license = { text = "MIT" }
 authors = [{ name = "Nedko Savov", email = "nedko.savov@insait.ai" }]
 dependencies = ["natsort"]
 requires-python = ">=3.8"
+
+[project.scripts]
+dataset_download = "dev_utils.shell_utils:dataset_download"
+dataset_upload = "dev_utils.shell_utils:dataset_upload"
+
+[tool.setuptools.package-data]
+dev_utils = ["../shell_utils/*.sh"]  # Include all shell scripts in the `bin/` folder
 
 [tool.setuptools.packages.find]
 where = ["."]
