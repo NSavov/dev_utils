@@ -38,7 +38,12 @@ def get_checkpoint_dpath(
         cdm = CheckpointDirManager(ckpt_central_dpath)
         
         if is_main_process:
-            checkpoint_dpath = cdm.build_dpath_next(run_name)
+            
+            if name_id_map is not None and run_name in name_id_map:
+                run_id = name_id_map[run_name]
+                checkpoint_dpath = cdm.build_dpath_by_id(run_id, description=run_name, exist_ok=True)
+            else:
+                checkpoint_dpath = cdm.build_dpath_next(run_name)
             cdm.update()
             run_id = cdm.get_last_id()
     
