@@ -25,7 +25,7 @@ class ANSIColor(Enum):
     ORANGE = 202
     BRIGHT_ORANGE = 208
     PURPLE = 93
-    BRIGHT_PURPLE = 201
+    BRIGHT_PURPLE = 99
     BROWN = 130
     PINK = 201
     BRIGHT_PINK = 213
