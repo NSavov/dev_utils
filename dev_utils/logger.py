@@ -4,8 +4,10 @@ import inspect
 import logging
 import random
 from enum import Enum
-from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 
 class ANSIColor(Enum):
@@ -61,26 +63,26 @@ class ExtendedLogger(logging.Logger):
     def __init__(self, name: str, level: int = logging.NOTSET) -> None:
         super().__init__(name, level)
 
-    def i(self, *args: Any, **kwargs: dict[str, Any]) -> None:  # noqa: ANN401
+    def i(self, *args: Any, **kwargs: Any) -> None:  # noqa: ANN401
         message = " ".join([str(arg) for arg in args])
         message = apply_color(message, "cyan")
         self.info(message, **kwargs)
 
-    def w(self, *args: Any, **kwargs: dict[str, Any]) -> None:  # noqa: ANN401
+    def w(self, *args: Any, **kwargs: Any) -> None:  # noqa: ANN401
         message = " ".join([str(arg) for arg in args])
         message = apply_color(message, "yellow")
         self.warning(message, **kwargs)
 
-    def e(self, *args: Any, **kwargs: dict[str, Any]) -> None:  # noqa: ANN401
+    def e(self, *args: Any, **kwargs: Any) -> None:  # noqa: ANN401
         message = " ".join([str(arg) for arg in args])
         message = apply_color(message, "red")
         self.error(message, **kwargs)
 
-    def d(self, *args: Any, **kwargs: dict[str, Any]) -> None:  # noqa: ANN401
+    def d(self, *args: Any, **kwargs: Any) -> None:  # noqa: ANN401
         message = " ".join([str(arg) for arg in args])
         self.debug(message, **kwargs)
 
-    def t(self, *args: Any, **kwargs: dict[str, Any]) -> None:  # noqa: ANN401
+    def t(self, *args: Any, **kwargs: Any) -> None:  # noqa: ANN401
         # test message - a debug message shown as info easily found it in code
         message = " ".join([str(arg) for arg in args])
         message = apply_color(message, "green")
@@ -93,7 +95,7 @@ class CustomFormatter(logging.Formatter):
         fmt: str | None = None,
         name_color: int | None = None,
         tag_colors: dict[str, int] | int | None = None,
-        **kwargs: dict,
+        **kwargs: Any,  # noqa: ANN401
     ) -> None:
         super().__init__(fmt, **kwargs)
         if tag_colors is None:
