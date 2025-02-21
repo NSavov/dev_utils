@@ -1,8 +1,11 @@
-import logging
+from __future__ import annotations
+
 import inspect
+import logging
 import random
-from typing import Dict
 from enum import Enum
+from pathlib import Path
+from typing import Any
 
 
 class ANSIColor(Enum):
@@ -31,7 +34,7 @@ class ANSIColor(Enum):
     BRIGHT_PINK = 213
 
 
-def map_color(color):
+def map_color(color: str | int) -> int:
     if isinstance(color, str):
         try:
             return ANSIColor[color.upper()].value
@@ -40,7 +43,7 @@ def map_color(color):
     return color
 
 
-def apply_color(message, color):
+def apply_color(message: str, color: str | int) -> str:
     """
     Applies the specified color to the given message.
 
@@ -55,29 +58,29 @@ def apply_color(message, color):
 
 
 class ExtendedLogger(logging.Logger):
-    def __init__(self, name, level=logging.NOTSET):
+    def __init__(self, name: str, level: int = logging.NOTSET) -> None:
         super().__init__(name, level)
 
-    def i(self, *args, **kwargs):
+    def i(self, *args: Any, **kwargs: dict[str, Any]) -> None:  # noqa: ANN401
         message = " ".join([str(arg) for arg in args])
         message = apply_color(message, "cyan")
         self.info(message, **kwargs)
 
-    def w(self, *args, **kwargs):
+    def w(self, *args: Any, **kwargs: dict[str, Any]) -> None:  # noqa: ANN401
         message = " ".join([str(arg) for arg in args])
         message = apply_color(message, "yellow")
         self.warning(message, **kwargs)
 
-    def e(self, *args, **kwargs):
+    def e(self, *args: Any, **kwargs: dict[str, Any]) -> None:  # noqa: ANN401
         message = " ".join([str(arg) for arg in args])
         message = apply_color(message, "red")
         self.error(message, **kwargs)
 
-    def d(self, *args, **kwargs):
+    def d(self, *args: Any, **kwargs: dict[str, Any]) -> None:  # noqa: ANN401
         message = " ".join([str(arg) for arg in args])
         self.debug(message, **kwargs)
 
-    def t(self, *args, **kwargs):
+    def t(self, *args: Any, **kwargs: dict[str, Any]) -> None:  # noqa: ANN401
         # test message - a debug message shown as info easily found it in code
         message = " ".join([str(arg) for arg in args])
         message = apply_color(message, "green")
@@ -89,20 +92,20 @@ class CustomFormatter(logging.Formatter):
         self,
         fmt: str | None = None,
         name_color: int | None = None,
-        tag_colors: Dict[str, int] | int | None = None,
-        **kwargs,
+        tag_colors: dict[str, int] | int | None = None,
+        **kwargs: dict,
     ) -> None:
         super().__init__(fmt, **kwargs)
         if tag_colors is None:
             tag_colors = {}
 
         if name_color is None:
-            name_color = random.randint(0, 255)
+            name_color = random.randint(0, 255)  # noqa: S311
 
         self.tag_colors = tag_colors
         self.name_color = name_color
 
-    def format(self, record):
+    def format(self, record: logging.LogRecord) -> str:
         # Get the stack frame of the calling logger
         stack = inspect.stack()
 
@@ -121,9 +124,9 @@ class CustomFormatter(logging.Formatter):
                 # Get the class name if available, otherwise use module name
 
                 # Set the color of the classname text
-                if isinstance(self.tag_colors, Dict):
+                if isinstance(self.tag_colors, dict):
                     if classname not in self.tag_colors:
-                        self.tag_colors[classname] = random.randint(0, 255)
+                        self.tag_colors[classname] = random.randint(0, 255)  # noqa: S311
                     tag_color = self.tag_colors[classname]
                 elif isinstance(self.tag_colors, int):
                     tag_color = self.tag_colors
@@ -131,17 +134,17 @@ class CustomFormatter(logging.Formatter):
                 break
 
         record.name = apply_color(record.name, self.name_color)
-        return super(CustomFormatter, self).format(record)
+        return super().format(record)
 
 
 global_file_fpath = None
 logging.setLoggerClass(ExtendedLogger)
 
 
-def getLogger(
-    name,
+def getLogger(  # noqa: N802 - this is the standard naming in logging module
+    name: str,
     name_color: int | str | None = None,
-    class_colors: Dict[str, int] | str | int | None = None,
+    class_colors: dict[str, int] | str | int | None = None,
 ) -> ExtendedLogger:
     global global_file_fpath
     # check if logger already exists
@@ -154,7 +157,7 @@ def getLogger(
     logger.handlers = []
 
     name_color = map_color(name_color)
-    if isinstance(class_colors, Dict):
+    if isinstance(class_colors, dict):
         for key in class_colors:
             class_colors[key] = map_color(class_colors[key])
     elif isinstance(class_colors, str):
@@ -179,7 +182,7 @@ def getLogger(
     return logger
 
 
-def update_logger_file(log_fpath):
+def update_logger_file(log_fpath: str | Path) -> None:
     global global_file_fpath
     for logger in logging.Logger.manager.loggerDict.values():
         if isinstance(logger, logging.Logger):  # Skip placeholders in the loggerDict
@@ -189,4 +192,3 @@ def update_logger_file(log_fpath):
                 file_handler.setLevel(logger.handlers[0].level)
             logger.addHandler(file_handler)
     global_file_fpath = log_fpath
-

@@ -21,3 +21,7 @@ dev_utils = ["../shell_utils/*.sh"]  # Include all shell scripts in the `bin/` f
 
 [tool.setuptools.packages.find]
 where = ["."]
+
+[tool.ruff.lint]
+select = ["ALL"]
+ignore = ["RET504", "ERA001", "E741", "N812", "D", "PLR0913", "T201", "FBT001", "FBT002", "PLW0602", "PLW0603", "PTH", "C901", "PLR2004"]
