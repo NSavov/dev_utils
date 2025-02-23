@@ -1,2 +1,2 @@
-from logging import getLogger
-from model_management import get_checkpoint_dpath
+from .logger import getLogger
+from .model_management import get_checkpoint_dpath
