@@ -77,6 +77,7 @@ class ImportHook:
 
         relative_dpath = os.path.dirname(relative_path_from_root)
         submodule_path = os.path.join(relative_dpath, submodule_path)
+        self.submodule_dot_path = submodule_path.replace("/", ".")
 
         self.importer = SubmoduleImporter(submodule_name, submodule_path)
 
@@ -96,34 +97,10 @@ class ImportHook:
                 self.abs_submodule_path,
             ):
                 spec = self.importer.find_spec(name, None)
+                if spec is not None and spec.name != "" and level == 0:
+                    name = self.submodule_dot_path + "." + name
 
-                if spec is not None and spec.name != "":
-                    # If level > 0, resolve the relative import name to an absolute one.
-                    if level > 0:
-                        # globals should contain '__package__' for relative imports to work.
-                        msg = "Relative imports with level > 0 not supported"
-                        raise NotImplementedError(
-                            msg,
-                        )
-                        # package = globals.get("__package__") if globals else None
-                        # if package is None:
-                        #     raise ImportError("Relative import in non-package")
-                        # name = importlib.util.resolve_name(name, package)
-
-                    # print(name, caller_file, self.abs_submodule_path)
-                    name = spec.name
-                    name_parts = name.split(".")
-                    name_parts = [
-                        part + self.importer.suffix if part else part for part in name_parts
-                    ]
-                    name = ".".join(name_parts)
-                    # spec.name = name
-                    if sys.modules.get(name):
-                        return sys.modules[name]
-                    module = importlib.util.module_from_spec(spec)
-                    sys.modules[name] = module
-                    spec.loader.exec_module(module)
-                    return module
+                return self.original_import(name, globals_, locals_, fromlist, level)
 
             return self.original_import(name, globals_, locals_, fromlist, level)
 
