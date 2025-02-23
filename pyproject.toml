@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "dev_utils"
-version = "0.2.0"
+version = "0.3.0"
 description = "Common tools I use for development"
 readme = "README.md"
 license = { text = "MIT" }

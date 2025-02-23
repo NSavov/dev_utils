@@ -9,6 +9,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from collections.abc import Mapping, Sequence
     from types import ModuleType
+import inspect
 
 
 class SubmoduleImporter:
@@ -67,6 +68,16 @@ class SubmoduleImporter:
 
 class ImportHook:
     def __init__(self, submodule_name: str, submodule_path: str) -> None:
+        current_file_path = os.path.abspath(inspect.stack()[1].filename)
+        current_working_directory = os.getcwd()
+        relative_path_from_root = os.path.relpath(
+            current_file_path,
+            start=current_working_directory,
+        )
+
+        relative_dpath = os.path.dirname(relative_path_from_root)
+        submodule_path = os.path.join(relative_dpath, submodule_path)
+
         self.importer = SubmoduleImporter(submodule_name, submodule_path)
 
         self.abs_submodule_path = os.path.abspath(submodule_path)
